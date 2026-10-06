@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Model Performance{% endblock %}
+{% block page_title %}ML Model Performance{% endblock %}
+
+{% block content %}
+<p class="page-section-subtitle">Actual evaluation results from training 5 classifiers on the Crop Recommendation dataset. Metrics computed on the 20% held-out test split using weighted averaging.</p>
+
+<!-- Best Model Banner -->
+<div class="best-model-banner">
+    <span class="trophy">🏆</span>
+    <div>
+        <h4>Best Model: {{ best_info.name }}</h4>
+        <p>Highest accuracy on the held-out test set — selected automatically from actual experiment results.</p>
+    </div>
+    <div class="metrics-pills">
+        <span class="metric-pill">Accuracy: {{ best_info.accuracy|floatformat:4 }}</span>
+        <span class="metric-pill">F1: {{ best_info.f1|floatformat:4 }}</span>
+    </div>
+</div>
+
+<!-- Results Table -->
+<div class="section-card">
+    <div class="section-card-header">
+        <h5>📊 Model Comparison Table</h5>
+        <span style="font-size:11px;color:var(--text-muted);">Source: ml/model_results.csv · Averaging: weighted</span>
+    </div>
+    <div class="section-card-body" style="padding:0;">
+        <div class="table-responsive">
+            <table class="research-table">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Accuracy</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in results %}
+                    <tr class="{% if row.Model == best_info.name %}best-row{% endif %}">
+                        <td>
+                            {{ row.Model }}
+                            {% if row.Model == best_info.name %}<span class="badge-best">BEST</span>{% endif %}
+                        </td>
+                        <td>{{ row.Accuracy|floatformat:4 }}</td>
+                        <td>{{ row.Precision|floatformat:4 }}</td>
+                        <td>{{ row.Recall|floatformat:4 }}</td>
+                        <td>{{ row.F1_score|floatformat:4 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Accuracy + All Metrics Charts -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-card-header"><h5>Accuracy Comparison</h5></div>
+            <div class="section-card-body chart-wrap">{{ charts.accuracy|safe }}</div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="section-card">
+            <div class="section-card-header"><h5>All Metrics Comparison</h5></div>
+            <div class="section-card-body chart-wrap">{{ charts.all_metrics|safe }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FEATURE IMPORTANCE
+═══════════════════════════════════════════ -->
+<div class="section-card">
+    <div class="section-card-header">
+        <h5>📌 Feature Importance</h5>
+        <span style="font-size:11px;color:var(--text-muted);">Derived from best model: {{ best_info.name }}</span>
+    </div>
+    <div class="section-card-body">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+            The chart shows the relative importance of the input features according to the trained Random Forest model.
+        </p>
+
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-7">
+                <div class="chart-wrap">{{ fi_chart|safe }}</div>
+            </div>
+            <div class="col-lg-5">
+                <div class="table-responsive">
+                    <table class="research-table">
+                        <thead>
+                            <tr>
+                                <th>Feature Name</th>
+                                <th>Importance Value</th>
+                                <th>Share (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in fi_table %}
+                            <tr>
+                                <td style="font-weight:600;">{{ item.feature }}</td>
+                                <td>{{ item.importance|floatformat:4 }}</td>
+                                <td>{{ item.percentage|floatformat:2 }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CONFUSION MATRIX
+═══════════════════════════════════════════ -->
+<div class="section-card">
+    <div class="section-card-header">
+        <h5>🗂️ Confusion Matrix</h5>
+        <span style="font-size:11px;color:var(--text-muted);">Test set · Same 80/20 stratified split · random_state=42</span>
+    </div>
+    <div class="section-card-body">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
+            The confusion matrix evaluates model classification performance across all 22 crop classes on the held-out 20% test split.
+            Actual crop classes are shown on the Y-axis and predicted crop classes on the X-axis.
+        </p>
+        <div class="chart-wrap">{{ cm_chart|safe }}</div>
+    </div>
+</div>
+{% endblock %}

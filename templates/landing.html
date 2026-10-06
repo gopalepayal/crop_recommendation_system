@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block title %}Smart Crop Recommendation System{% endblock %}
+{% block page_title %}Home — Smart Crop Recommendation System{% endblock %}
+
+{% block content %}
+<!-- ═══════════════════════════════════════════
+     1. HERO SECTION
+═══════════════════════════════════════════ -->
+<div class="landing-hero-card mb-5">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <div class="hero-badge">🌿 Intelligent Decision Support</div>
+            <h1 class="hero-title">Smart Crop Recommendation System</h1>
+            <h2 class="hero-subtitle">Make Better Crop Decisions with Soil &amp; Environmental Data</h2>
+            <p class="hero-lead">
+                Enter soil and environmental conditions to receive an ML-based crop recommendation.
+            </p>
+            <div class="d-flex flex-wrap gap-3 mt-4">
+                <a href="{% url 'crop_recommendation' %}" class="btn-hero-primary">
+                    🌱 Get Crop Recommendation
+                </a>
+                <a href="{% url 'overview' %}" class="btn-hero-secondary">
+                    📊 Explore Research
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-5 text-center">
+            <div class="hero-image-wrapper">
+                <img src="/static/images/farmer_hero.png" alt="Indian Agriculture & Farmer" class="hero-img">
+                <div class="hero-img-badge">
+                    <span>🌾 ML Crop Intelligence</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     2. HOW IT WORKS (3-STEP FLOW)
+═══════════════════════════════════════════ -->
+<div class="landing-section mb-5">
+    <div class="text-center mb-4">
+        <h3 class="section-heading">How It Works</h3>
+        <p class="section-sub">Simple 3-step decision support process for optimal crop selection</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Step 1 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-badge">Step 1</div>
+                <div class="step-icon">🧪</div>
+                <h4 class="step-title">Enter Farm Conditions</h4>
+                <p class="step-desc">
+                    Provide soil nutrients (N, P, K), soil pH, and environmental factors (temperature, humidity, rainfall).
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-badge">Step 2</div>
+                <div class="step-icon">🤖</div>
+                <h4 class="step-title">Machine Learning Analysis</h4>
+                <p class="step-desc">
+                    The trained ML model analyzes the input parameters against learned patterns from historical data.
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="col-md-4">
+            <div class="step-card">
+                <div class="step-badge">Step 3</div>
+                <div class="step-icon">🌾</div>
+                <h4 class="step-title">Crop Recommendation</h4>
+                <p class="step-desc">
+                    The system predicts a suitable crop based on learned patterns from the dataset.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     3. KEY FEATURES
+═══════════════════════════════════════════ -->
+<div class="landing-section mb-5">
+    <div class="text-center mb-4">
+        <h3 class="section-heading">Key Features</h3>
+        <p class="section-sub">Data-driven analysis powered by actual crop environment dataset</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Feature 1 -->
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon-box">🌱</div>
+                <h4 class="feature-title">Soil-Based Analysis</h4>
+                <p class="feature-desc">Analyze N, P, K and soil pH.</p>
+            </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon-box">🌦️</div>
+                <h4 class="feature-title">Environmental Analysis</h4>
+                <p class="feature-desc">Use temperature, humidity and rainfall conditions.</p>
+            </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon-box">🤖</div>
+                <h4 class="feature-title">ML-Based Recommendation</h4>
+                <p class="feature-desc">Use trained machine learning models to recommend a suitable crop.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     4. PROJECT STATISTICS
+═══════════════════════════════════════════ -->
+<div class="landing-stats-banner mb-5">
+    <div class="row g-3 text-center">
+        <div class="col-6 col-md-3">
+            <div class="stat-num">2,200+</div>
+            <div class="stat-label">Dataset Records</div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-num">22</div>
+            <div class="stat-label">Crop Classes</div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-num">7</div>
+            <div class="stat-label">Input Parameters</div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-num">5</div>
+            <div class="stat-label">ML Models Compared</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     5. POWERED BY MACHINE LEARNING
+═══════════════════════════════════════════ -->
+<div class="landing-section mb-5">
+    <div class="section-card p-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <div class="hero-badge mb-2">⚡ Machine Learning Core</div>
+                <h3 class="section-heading mb-2">Powered by Machine Learning</h3>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+                    Evaluated across 5 machine learning classification algorithms on the 20% held-out test split:
+                </p>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="model-tag">Logistic Regression</span>
+                    <span class="model-tag">Decision Tree</span>
+                    <span class="model-tag active">Random Forest</span>
+                    <span class="model-tag">SVM</span>
+                    <span class="model-tag">XGBoost</span>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="best-model-highlight">
+                    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;opacity:.9;">
+                        Best Performing Model
+                    </div>
+                    <div style="font-size:24px;font-weight:800;color:#fff;margin:4px 0 2px;">
+                        Random Forest
+                    </div>
+                    <div style="font-size:28px;font-weight:800;color:#fff;">
+                        Accuracy: 99.55%
+                    </div>
+                    <p style="font-size:12px;color:rgba(255,255,255,.85);margin:6px 0 0;">
+                        Highest overall accuracy and F1-score across all 22 crop classes.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     6. CALL TO ACTION (CTA)
+═══════════════════════════════════════════ -->
+<div class="landing-cta-card text-center p-5">
+    <h3 class="cta-heading">Ready to Explore Crop Recommendations?</h3>
+    <p class="cta-sub">
+        Use soil and environmental parameters to generate an ML-based crop recommendation.
+    </p>
+    <div class="mt-4">
+        <a href="{% url 'crop_recommendation' %}" class="btn-cta">
+            🌾 Start Recommendation
+        </a>
+    </div>
+</div>
+{% endblock %}

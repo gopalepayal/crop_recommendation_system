@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}Crop Analysis{% endblock %}
+{% block page_title %}Crop Analysis{% endblock %}
+
+{% block content %}
+<p class="page-section-subtitle">Interactive analysis of soil nutrients and environmental requirements across all 22 crop classes. All values computed from the actual dataset.</p>
+
+<!-- Nutrient Analysis -->
+<div class="section-card">
+    <div class="section-card-header">
+        <h5>🧪 Soil Nutrient Analysis (Average per Crop)</h5>
+        <span style="font-size:11px;color:var(--text-muted);">N · P · K in kg/ha ratios</span>
+    </div>
+    <div class="section-card-body">
+        <div class="row g-3">
+            <div class="col-lg-4 chart-wrap">{{ nutrient_charts.n|safe }}</div>
+            <div class="col-lg-4 chart-wrap">{{ nutrient_charts.p|safe }}</div>
+            <div class="col-lg-4 chart-wrap">{{ nutrient_charts.k|safe }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Environmental Conditions -->
+<div class="section-card">
+    <div class="section-card-header">
+        <h5>🌡️ Environmental Requirements per Crop</h5>
+        <span style="font-size:11px;color:var(--text-muted);">Mean values across each crop's 100 records</span>
+    </div>
+    <div class="section-card-body">
+        <div class="row g-3">
+            <div class="col-lg-6 chart-wrap">{{ env_charts.temp|safe }}</div>
+            <div class="col-lg-6 chart-wrap">{{ env_charts.humidity|safe }}</div>
+            <div class="col-lg-6 chart-wrap">{{ env_charts.ph|safe }}</div>
+            <div class="col-lg-6 chart-wrap">{{ env_charts.rainfall|safe }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CROP PROFILE / COMPARISON
+═══════════════════════════════════════════ -->
+<div class="section-card">
+    <div class="section-card-header">
+        <h5>🔍 Crop Profile &amp; Comparison</h5>
+        <span style="font-size:11px;color:var(--text-muted);">Select a crop to compare its actual dataset averages vs overall dataset averages</span>
+    </div>
+    <div class="section-card-body">
+
+        <!-- Crop Selector Form -->
+        <form method="GET" action="{% url 'crop_analysis' %}" class="row g-2 align-items-end mb-4">
+            <div class="col-auto">
+                <label class="form-label" for="cropSelect">Select Crop</label>
+                <select class="form-control" id="cropSelect" name="crop" onchange="this.form.submit()" style="min-width:200px;">
+                    <option value="">— choose a crop —</option>
+                    {% for crop in crop_list %}
+                    <option value="{{ crop }}" {% if selected_crop == crop %}selected{% endif %}>
+                        {{ crop|capfirst }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn-recommend" style="width:auto;padding:9px 20px;font-size:13px;">View Profile</button>
+            </div>
+            {% if selected_crop %}
+            <div class="col-auto">
+                <a href="{% url 'crop_analysis' %}" style="font-size:13px;color:var(--text-muted);text-decoration:none;">✕ Clear</a>
+            </div>
+            {% endif %}
+        </form>
+
+        {% if selected_crop and selected_profile %}
+        <!-- Profile Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div style="font-size:15px;font-weight:700;color:var(--primary);margin-bottom:12px;">
+                    {{ selected_crop|capfirst }} — Dataset Profile
+                    <span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:8px;">({{ selected_profile.count }} records)</span>
+                </div>
+            </div>
+            {% with avg=selected_profile.averages %}
+            <div class="col-6 col-sm-4 col-md-3 col-lg-auto">
+                <div class="kpi-card" style="min-width:120px;">
+                    <div class="kpi-icon green">🧪</div>
+                    <div>
+                        <div class="kpi-label">Nitrogen</div>
+                        <div class="kpi-value" style="font-size:18px;">{{ avg.N }}</div>
+                        <div class="kpi-sub">vs {{ overall_avgs.N }} overall</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-auto">
+                <div class="kpi-card" style="min-width:120px;">
+                    <div class="kpi-icon blue">🧪</div>
+                    <div>
+                        <div class="kpi-label">Phosphorus</div>
+                        <div class="kpi-value" style="font-size:18px;">{{ avg.P }}</div>
+                        <div class="kpi-sub">vs {{ overall_avgs.P }} overall</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-auto">
+                <div class="kpi-card" style="min-width:120px;">
+                    <div class="kpi-icon amber">🧪</div>
+                    <div>
+                        <div class="kpi-label">Potassium</div>
+                        <div class="kpi-value" style="font-size:18px;">{{ avg.K }}</div>
+                        <div class="kpi-sub">vs {{ overall_avgs.K }} overall</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-auto">
+                <div class="kpi-card" style="min-width:120px;">
+                    <div class="kpi-icon teal">🌡️</div>
+                    <div>
+                        <div class="kpi-label">Temperature</div>
+                        <div class="kpi-value" style="font-size:18px;">{{ avg.temperature }}</div>
+                        <div class="kpi-sub">vs {{ overall_avgs.temperature }} overall</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-auto">
+                <div class="kpi-card" style="min-width:120px;">
+                    <div class="kpi-icon purple">💧</div>
+                    <div>
+                        <div class="kpi-label">Humidity</div>
+                        <div class="kpi-value" style="font-size:18px;">{{ avg.humidity }}</div>
+                        <div class="kpi-sub">vs {{ overall_avgs.humidity }} overall</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-auto">
+                <div class="kpi-card" style="min-width:120px;">
+                    <div class="kpi-icon green">⚗️</div>
+                    <div>
+                        <div class="kpi-label">pH</div>
+                        <div class="kpi-value" style="font-size:18px;">{{ avg.ph }}</div>
+                        <div class="kpi-sub">vs {{ overall_avgs.ph }} overall</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-auto">
+                <div class="kpi-card" style="min-width:120px;">
+                    <div class="kpi-icon blue">🌧️</div>
+                    <div>
+                        <div class="kpi-label">Rainfall</div>
+                        <div class="kpi-value" style="font-size:18px;">{{ avg.rainfall }}</div>
+                        <div class="kpi-sub">vs {{ overall_avgs.rainfall }} overall</div>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+        </div>
+
+        <!-- Comparison Charts -->
+        {% if comparison_charts %}
+        <div class="row g-3">
+            <div class="col-lg-6 chart-wrap">{{ comparison_charts.nutrients|safe }}</div>
+            <div class="col-lg-6 chart-wrap">{{ comparison_charts.env|safe }}</div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="awaiting-box" style="min-height:180px;">
+            <span class="await-icon">🌱</span>
+            <p style="font-size:13px;">Select a crop from the dropdown above to see its actual dataset profile and how it compares to the overall dataset averages.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

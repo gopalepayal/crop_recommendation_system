@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Overview{% endblock %}
+{% block page_title %}Research Overview{% endblock %}
+
+{% block content %}
+<p class="page-section-subtitle">Actual statistics computed from the Crop Recommendation dataset and ML experiment results.</p>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-2">
+        <div class="kpi-card">
+            <div class="kpi-icon green">🗂️</div>
+            <div>
+                <div class="kpi-label">Total Records</div>
+                <div class="kpi-value">{{ stats.total_records }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="kpi-card">
+            <div class="kpi-icon teal">🌾</div>
+            <div>
+                <div class="kpi-label">Crop Classes</div>
+                <div class="kpi-value">{{ stats.total_classes }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-2">
+        <div class="kpi-card">
+            <div class="kpi-icon blue">📐</div>
+            <div>
+                <div class="kpi-label">Input Features</div>
+                <div class="kpi-value">{{ stats.num_features }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-icon purple">🤖</div>
+            <div>
+                <div class="kpi-label">Best Model</div>
+                <div class="kpi-value" style="font-size:16px; margin-top:4px;">{{ stats.best_model }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-icon amber">🏆</div>
+            <div>
+                <div class="kpi-label">Best Accuracy</div>
+                <div class="kpi-value">{{ stats.best_accuracy }}<span style="font-size:16px;font-weight:500">%</span></div>
+                <div class="kpi-sub">On test split (20%)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts + Side Panels -->
+<div class="row g-3">
+    <!-- Crop Distribution Chart -->
+    <div class="col-lg-8">
+        <div class="section-card">
+            <div class="section-card-header">
+                <h5>🌾 Crop Distribution</h5>
+                <span style="font-size:11px;color:var(--text-muted);">22 crop classes · 100 records each</span>
+            </div>
+            <div class="section-card-body chart-wrap">
+                {{ crop_chart|safe }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="col-lg-4 d-flex flex-column gap-3">
+
+        <!-- Dataset Summary -->
+        <div class="section-card flex-fill">
+            <div class="section-card-header"><h5>📋 Dataset Summary</h5></div>
+            <div class="section-card-body">
+                <dl class="summary-dl">
+                    <dt>Source</dt>
+                    <dd>Crop Recommendation Dataset (public)</dd>
+                    <dt>Shape</dt>
+                    <dd>{{ stats.total_records }} rows × {{ stats.num_features|add:1 }} columns</dd>
+                    <dt>Input Features</dt>
+                    <dd>N, P, K, Temperature, Humidity, pH, Rainfall</dd>
+                    <dt>Target Column</dt>
+                    <dd>label (crop class)</dd>
+                    <dt>Missing Values</dt>
+                    <dd>0</dd>
+                    <dt>Duplicate Records</dt>
+                    <dd>0</dd>
+                    <dt>Train / Test Split</dt>
+                    <dd>80% / 20% (stratified)</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Research Insights -->
+        <div class="section-card flex-fill">
+            <div class="section-card-header"><h5>💡 Research Insights</h5></div>
+            <div class="section-card-body">
+                <ul class="insights-list">
+                    <li>
+                        <span class="insight-dot"></span>
+                        The dataset is balanced with exactly 100 samples per crop class, requiring no oversampling.
+                    </li>
+                    <li>
+                        <span class="insight-dot"></span>
+                        No missing values or duplicate records were found, so no imputation was necessary.
+                    </li>
+                    <li>
+                        <span class="insight-dot"></span>
+                        <strong>{{ stats.best_model }}</strong> achieved the highest test accuracy of <strong>{{ stats.best_accuracy }}%</strong> across the 5 trained classifiers.
+                    </li>
+                    <li>
+                        <span class="insight-dot"></span>
+                        Standard scaling (StandardScaler) was applied before training; the same scaler is used at inference time.
+                    </li>
+                    <li>
+                        <span class="insight-dot"></span>
+                        All results are reproducible using <code>random_state=42</code>.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

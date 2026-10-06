@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Dataset Explorer{% endblock %}
+{% block page_title %}Dataset Explorer{% endblock %}
+
+{% block content %}
+<p class="page-section-subtitle">Explore raw dataset records directly from <code>data/Crop_recommendation.csv</code> (2,200 total entries across 22 crop classes).</p>
+
+<!-- Filters & Search Bar -->
+<div class="section-card mb-4">
+    <div class="section-card-header">
+        <h5>🔍 Filter &amp; Search Dataset</h5>
+        <span style="font-size:11px;color:var(--text-muted);">Source: data/Crop_recommendation.csv</span>
+    </div>
+    <div class="section-card-body">
+        <form method="GET" action="{% url 'dataset_explorer' %}" class="row g-3 align-items-end">
+            <!-- Search Query -->
+            <div class="col-md-4">
+                <label class="form-label" for="searchInput">Search Crop Label</label>
+                <input type="text" class="form-control" id="searchInput" name="search"
+                       placeholder="e.g. rice, maize, apple..." value="{{ search_query }}">
+            </div>
+
+            <!-- Crop Select -->
+            <div class="col-md-3">
+                <label class="form-label" for="cropFilter">Filter by Crop</label>
+                <select class="form-control" id="cropFilter" name="crop" onchange="this.form.submit()">
+                    <option value="">— All Crops (22) —</option>
+                    {% for crop in crop_list %}
+                    <option value="{{ crop }}" {% if crop_filter == crop %}selected{% endif %}>
+                        {{ crop|capfirst }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="col-md-5 d-flex gap-2 align-items-end justify-content-md-end">
+                <button type="submit" class="btn-recommend" style="width:auto;padding:9px 18px;font-size:13px;">Filter</button>
+
+                {% if search_query or crop_filter %}
+                <a href="{% url 'dataset_explorer' %}" class="btn btn-outline-secondary" style="font-size:13px;padding:9px 14px;border-radius:8px;">✕ Clear</a>
+                {% endif %}
+
+                <a href="{% url 'dataset_explorer' %}?download=1{% if search_query %}&search={{ search_query }}{% endif %}{% if crop_filter %}&crop={{ crop_filter }}{% endif %}"
+                   class="btn btn-success" style="font-size:13px;padding:9px 16px;border-radius:8px;background:var(--primary);border:none;">
+                    📥 Download CSV
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Dataset Results Table -->
+<div class="section-card">
+    <div class="section-card-header">
+        <div class="d-flex align-items-center gap-2">
+            <h5 class="m-0">📊 Dataset Records</h5>
+            <span class="badge" style="background:var(--primary-light);color:var(--primary);font-size:12px;padding:5px 12px;border-radius:12px;font-weight:600;">
+                {{ total_filtered }} matching record{% if total_filtered != 1 %}s{% endif %} (of {{ total_records }})
+            </span>
+        </div>
+        <span style="font-size:11px;color:var(--text-muted);">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    </div>
+    <div class="section-card-body p-0">
+        <div class="table-responsive">
+            <table class="research-table">
+                <thead>
+                    <tr>
+                        <th>N (kg/ha)</th>
+                        <th>P (kg/ha)</th>
+                        <th>K (kg/ha)</th>
+                        <th>Temp (°C)</th>
+                        <th>Humidity (%)</th>
+                        <th>Soil pH</th>
+                        <th>Rainfall (mm)</th>
+                        <th>Crop Label</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in page_obj %}
+                    <tr>
+                        <td>{{ row.N }}</td>
+                        <td>{{ row.P }}</td>
+                        <td>{{ row.K }}</td>
+                        <td>{{ row.temperature }}</td>
+                        <td>{{ row.humidity }}</td>
+                        <td>{{ row.ph }}</td>
+                        <td>{{ row.rainfall }}</td>
+                        <td><span class="badge-crop">{{ row.label }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            No dataset records match your search criteria. Try clearing filters or changing search query.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="section-card-footer p-3 border-top d-flex justify-content-between align-items-center">
+        <div class="text-muted" style="font-size:12px;">
+            Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ total_filtered }} entries
+        </div>
+
+        <nav aria-label="Dataset navigation">
+            <ul class="pagination pagination-sm m-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if crop_filter %}&crop={{ crop_filter }}{% endif %}">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if crop_filter %}&crop={{ crop_filter }}{% endif %}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo; First</span></li>
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link" style="background:var(--primary);border-color:var(--primary);">
+                        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if crop_filter %}&crop={{ crop_filter }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if crop_filter %}&crop={{ crop_filter }}{% endif %}">Last &raquo;</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Next</span></li>
+                <li class="page-item disabled"><span class="page-link">Last &raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

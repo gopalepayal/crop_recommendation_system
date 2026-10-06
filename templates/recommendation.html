@@ -1,0 +1,445 @@
+{% extends 'base.html' %}
+{% block title %}Crop Recommendation{% endblock %}
+{% block page_title %}<span data-i18n="pageTitle">Crop Recommendation</span>{% endblock %}
+
+{% block content %}
+<p class="page-section-subtitle" data-i18n="pageSubtitle">Enter soil and environmental parameters to obtain an ML-based crop recommendation. The prediction is made by the saved best-performing model — no retraining occurs on this request.</p>
+
+<!-- ── Language Toggle ── -->
+<div class="lang-toggle-wrap" id="langToggleArea">
+    <span class="lang-toggle-label" data-i18n="langLabel">Language:</span>
+    <div class="lang-pill-group" role="group" aria-label="Language selection">
+        <button class="lang-pill active" id="btn-en" onclick="setLang('en')" aria-pressed="true">English</button>
+        <button class="lang-pill"        id="btn-mr" onclick="setLang('mr')" aria-pressed="false">मराठी</button>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Input Form -->
+    <div class="col-lg-5">
+        <div class="section-card">
+            <div class="section-card-header">
+                <h5>🧪 <span data-i18n="inputParamsTitle">Input Parameters</span></h5>
+            </div>
+            <div class="section-card-body">
+
+                {% if error %}
+                <div class="alert alert-danger">⚠️ {{ error }}</div>
+                {% endif %}
+
+                <form method="POST" id="recommendForm" novalidate>
+                    {% csrf_token %}
+
+                    <div class="form-section-label" data-i18n="soilNutrientsLabel">Soil Nutrients (kg/ha)</div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-4">
+                            <label class="form-label" for="n" data-i18n="labelN">Nitrogen (N)</label>
+                            <input type="number" step="0.01" min="0" max="300"
+                                   class="form-control" id="n" name="n"
+                                   data-placeholder-en="e.g. 90" data-placeholder-mr="उदा. ९०"
+                                   placeholder="e.g. 90" required
+                                   value="{{ request.POST.n }}">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label" for="p" data-i18n="labelP">Phosphorus (P)</label>
+                            <input type="number" step="0.01" min="0" max="300"
+                                   class="form-control" id="p" name="p"
+                                   data-placeholder-en="e.g. 42" data-placeholder-mr="उदा. ४२"
+                                   placeholder="e.g. 42" required
+                                   value="{{ request.POST.p }}">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label" for="k" data-i18n="labelK">Potassium (K)</label>
+                            <input type="number" step="0.01" min="0" max="300"
+                                   class="form-control" id="k" name="k"
+                                   data-placeholder-en="e.g. 43" data-placeholder-mr="उदा. ४३"
+                                   placeholder="e.g. 43" required
+                                   value="{{ request.POST.k }}">
+                        </div>
+                    </div>
+
+                    <div class="form-section-label" data-i18n="soilChemLabel">Soil Chemistry</div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-12">
+                            <label class="form-label" for="ph" data-i18n="labelPh">Soil pH</label>
+                            <input type="number" step="0.01" min="0" max="14"
+                                   class="form-control" id="ph" name="ph"
+                                   data-placeholder-en="0 – 14, e.g. 6.5" data-placeholder-mr="० – १४, उदा. ६.५"
+                                   placeholder="0 – 14, e.g. 6.5" required
+                                   value="{{ request.POST.ph }}">
+                        </div>
+                    </div>
+
+                    <div class="form-section-label" data-i18n="envCondLabel">Environmental Conditions</div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label" for="temp" data-i18n="labelTemp">Temperature (°C)</label>
+                            <input type="number" step="0.01" min="-10" max="60"
+                                   class="form-control" id="temp" name="temp"
+                                   data-placeholder-en="e.g. 22.5" data-placeholder-mr="उदा. २२.५"
+                                   placeholder="e.g. 22.5" required
+                                   value="{{ request.POST.temp }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" for="humidity" data-i18n="labelHumidity">Humidity (%)</label>
+                            <input type="number" step="0.01" min="0" max="100"
+                                   class="form-control" id="humidity" name="humidity"
+                                   data-placeholder-en="e.g. 82" data-placeholder-mr="उदा. ८२"
+                                   placeholder="e.g. 82" required
+                                   value="{{ request.POST.humidity }}">
+                        </div>
+                        <div class="col-12 mt-2">
+                            <label class="form-label" for="rainfall" data-i18n="labelRainfall">Rainfall (mm)</label>
+                            <input type="number" step="0.01" min="0"
+                                   class="form-control" id="rainfall" name="rainfall"
+                                   data-placeholder-en="e.g. 200.9" data-placeholder-mr="उदा. २००.९"
+                                   placeholder="e.g. 200.9" required
+                                   value="{{ request.POST.rainfall }}">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn-recommend">
+                            🔮 <span data-i18n="btnRecommend">Recommend Crop</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Valid Ranges Reference -->
+                <div style="margin-top:18px; padding:12px 14px; background:var(--primary-light); border-radius:8px;">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);margin-bottom:6px;"
+                         data-i18n="rangesTitle">Typical Dataset Ranges</div>
+                    <div style="font-size:11px;color:var(--text-muted);display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;">
+                        <span>N: 0 – 140</span><span>P: 5 – 145</span>
+                        <span>K: 5 – 205</span><span>pH: 3.5 – 9.9</span>
+                        <span data-i18n="rangeTemp">Temp: 8 – 44 °C</span><span data-i18n="rangeHumidity">Humidity: 14 – 100%</span>
+                        <span data-i18n="rangeRainfall">Rainfall: 20 – 299 mm</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Panel -->
+    <div class="col-lg-7">
+        {% if prediction %}
+        <!-- Prediction & Confidence Banner -->
+        <div class="prediction-card">
+            <span class="prediction-label" data-i18n="topRecoLabel">Top Recommended Crop</span>
+            <span class="prediction-icon">🌱</span>
+            <div class="prediction-crop">{{ prediction }}</div>
+            <div class="mt-2">
+                <span class="badge" style="background:var(--primary);color:#fff;font-size:14px;padding:6px 16px;border-radius:20px;font-weight:600;">
+                    🎯 <span data-i18n="confidenceLabel">Model Confidence</span>: {{ confidence_pct }}%
+                </span>
+            </div>
+            <p style="color:var(--text-muted);font-size:12px;margin-top:8px;" data-i18n="confidenceNote">
+                Calculated directly via Random Forest <code>predict_proba()</code> on saved classifier ({{ stats.best_model }}).
+            </p>
+        </div>
+
+        <!-- Top 3 Crop Recommendations Card -->
+        <div class="section-card mt-4">
+            <div class="section-card-header">
+                <h5>🏆 <span data-i18n="top3Title">Top 3 Recommended Crops</span></h5>
+                <span style="font-size:11px;color:var(--text-muted);" data-i18n="top3Source">Source: Random Forest predict_proba()</span>
+            </div>
+            <div class="section-card-body">
+                <div class="d-flex flex-column gap-3">
+                    {% for item in top3 %}
+                    <div class="d-flex align-items-center gap-3 p-3" style="background:var(--bg-body);border-radius:8px;border:1px solid var(--border);">
+                        <div style="font-weight:700;font-size:14px;width:65px;flex-shrink:0;">
+                            {% if item.rank == 1 %}
+                            <span class="badge" style="background:#1a6b3c;color:#fff;padding:5px 9px;">#1 <span data-i18n="rankTop">Top</span></span>
+                            {% elif item.rank == 2 %}
+                            <span class="badge" style="background:#2d9e6b;color:#fff;padding:5px 9px;">#2</span>
+                            {% else %}
+                            <span class="badge" style="background:#6c757d;color:#fff;padding:5px 9px;">#3</span>
+                            {% endif %}
+                        </div>
+                        <div style="flex:1;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span style="font-weight:700;font-size:14px;color:var(--text-main);">{{ item.crop }}</span>
+                                <span style="font-weight:700;font-size:13px;color:var(--primary);">{{ item.percentage }}%</span>
+                            </div>
+                            <div class="progress" style="height:8px;border-radius:4px;background:#ddeae2;">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width: {{ item.percentage }}%; background: {% if item.rank == 1 %}var(--primary){% elif item.rank == 2 %}var(--accent){% else %}#85ab95{% endif %};"
+                                     aria-valuenow="{{ item.percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Summary Card -->
+        <div class="section-card mt-4">
+            <div class="section-card-header">
+                <h5>📋 <span data-i18n="inputSummaryTitle">Submitted Input Parameters Summary</span></h5>
+            </div>
+            <div class="section-card-body">
+                <div class="row g-2 text-center">
+                    <div class="col-4 col-sm-3">
+                        <div class="p-2" style="background:var(--primary-light);border-radius:8px;">
+                            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;" data-i18n="summaryN">Nitrogen (N)</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--primary);">{{ user_input.N }} <small style="font-size:10px;">kg/ha</small></div>
+                        </div>
+                    </div>
+                    <div class="col-4 col-sm-3">
+                        <div class="p-2" style="background:var(--primary-light);border-radius:8px;">
+                            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;" data-i18n="summaryP">Phosphorus (P)</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--primary);">{{ user_input.P }} <small style="font-size:10px;">kg/ha</small></div>
+                        </div>
+                    </div>
+                    <div class="col-4 col-sm-3">
+                        <div class="p-2" style="background:var(--primary-light);border-radius:8px;">
+                            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;" data-i18n="summaryK">Potassium (K)</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--primary);">{{ user_input.K }} <small style="font-size:10px;">kg/ha</small></div>
+                        </div>
+                    </div>
+                    <div class="col-4 col-sm-3">
+                        <div class="p-2" style="background:var(--primary-light);border-radius:8px;">
+                            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;" data-i18n="summaryPh">Soil pH</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--primary);">{{ user_input.ph }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4 col-sm-4">
+                        <div class="p-2" style="background:var(--primary-light);border-radius:8px;">
+                            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;" data-i18n="summaryTemp">Temp</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--primary);">{{ user_input.temperature }} <small style="font-size:10px;">°C</small></div>
+                        </div>
+                    </div>
+                    <div class="col-4 col-sm-4">
+                        <div class="p-2" style="background:var(--primary-light);border-radius:8px;">
+                            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;" data-i18n="summaryHumidity">Humidity</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--primary);">{{ user_input.humidity }} <small style="font-size:10px;">%</small></div>
+                        </div>
+                    </div>
+                    <div class="col-4 col-sm-4">
+                        <div class="p-2" style="background:var(--primary-light);border-radius:8px;">
+                            <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;" data-i18n="summaryRainfall">Rainfall</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--primary);">{{ user_input.rainfall }} <small style="font-size:10px;">mm</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- "Why This Crop?" Dataset-Based Explanation Section -->
+        <div class="section-card mt-4">
+            <div class="section-card-header">
+                <h5>💡 <span data-i18n="whyTitle">Why This Crop? — Dataset-Based Explanation</span></h5>
+                <span style="font-size:11px;color:var(--text-muted);" data-i18n="whySource">DATASET-BASED COMPARISON</span>
+            </div>
+            <div class="section-card-body">
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;" data-i18n="whyDesc">
+                    Below is a direct comparison between your submitted input parameters and the actual mean dataset values observed for <strong>{{ prediction }}</strong> (computed from {{ crop_avgs.count }} dataset records).
+                </p>
+
+                <!-- Feature Comparison Table -->
+                <div class="table-responsive mb-3">
+                    <table class="research-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="tblParam">Parameter</th>
+                                <th data-i18n="tblUserVal">User Value</th>
+                                <th data-i18n="tblCropAvg">Crop Average</th>
+                                <th data-i18n="tblDiff">Difference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in why_comparison %}
+                            <tr>
+                                <td style="font-weight:600;">{{ item.name }}</td>
+                                <td>{{ item.user_val }} {{ item.unit }}</td>
+                                <td>{{ item.crop_avg }} {{ item.unit }}</td>
+                                <td>
+                                    <span class="variance-pill {% if item.diff >= -10 and item.diff <= 10 %}close{% else %}diff{% endif %}">
+                                        {% if item.diff > 0 %}+{{ item.diff }}{% else %}{{ item.diff }}{% endif %} {{ item.unit }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Plotly Visualization -->
+                {% if why_chart %}
+                <div class="chart-wrap mt-3 mb-3">{{ why_chart|safe }}</div>
+                {% endif %}
+
+                <!-- Explanation Notice -->
+                <div class="explanation-notice">
+                    <div class="explanation-notice-title">📌 <span data-i18n="noticeTitle">DATASET-BASED COMPARISON</span></div>
+                    <span data-i18n="noticeText">This comparison is based on patterns in the training dataset and is intended for decision support, not as an absolute yield guarantee.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="disclaimer-box">
+            ⚠️ <strong data-i18n="disclaimerStrong">Disclaimer:</strong> <span data-i18n="disclaimerText">This comparison is based on patterns in the training dataset and is intended for decision support, not as an absolute yield guarantee.</span>
+        </div>
+
+        {% else %}
+        <div class="awaiting-box">
+            <span class="await-icon">🌿</span>
+            <h5 style="font-weight:600;margin-bottom:6px;" data-i18n="awaitTitle">Awaiting Input</h5>
+            <p style="font-size:13px;max-width:320px;" data-i18n="awaitDesc">Enter the soil and environmental parameters on the left, then click <strong>Recommend Crop</strong> to receive an ML-based prediction.</p>
+            <div style="margin-top:20px;font-size:11px;text-align:center;color:var(--text-muted);">
+                Model: {{ stats.best_model }} · Accuracy: {{ stats.best_accuracy }}%
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- ================================================================
+     LANGUAGE SWITCH — English / Marathi
+     All strings are defined here; no backend/form logic is changed.
+     ================================================================ -->
+<script>
+(function () {
+    /* ── Translation dictionary ── */
+    const T = {
+        en: {
+            pageTitle:        "Crop Recommendation",
+            pageSubtitle:     "Enter soil and environmental parameters to obtain an ML-based crop recommendation. The prediction is made by the saved best-performing model — no retraining occurs on this request.",
+            langLabel:        "Language:",
+            inputParamsTitle: "Input Parameters",
+            soilNutrientsLabel: "Soil Nutrients (kg/ha)",
+            labelN:           "Nitrogen (N)",
+            labelP:           "Phosphorus (P)",
+            labelK:           "Potassium (K)",
+            soilChemLabel:    "Soil Chemistry",
+            labelPh:          "Soil pH",
+            envCondLabel:     "Environmental Conditions",
+            labelTemp:        "Temperature (°C)",
+            labelHumidity:    "Humidity (%)",
+            labelRainfall:    "Rainfall (mm)",
+            btnRecommend:     "Recommend Crop",
+            rangesTitle:      "Typical Dataset Ranges",
+            rangeTemp:        "Temp: 8 – 44 °C",
+            rangeHumidity:    "Humidity: 14 – 100%",
+            rangeRainfall:    "Rainfall: 20 – 299 mm",
+            topRecoLabel:     "Top Recommended Crop",
+            confidenceLabel:  "Model Confidence",
+            confidenceNote:   null, /* keep raw HTML, skip */
+            top3Title:        "Top 3 Recommended Crops",
+            top3Source:       "Source: Random Forest predict_proba()",
+            rankTop:          "Top",
+            inputSummaryTitle:"Submitted Input Parameters Summary",
+            summaryN:         "Nitrogen (N)",
+            summaryP:         "Phosphorus (P)",
+            summaryK:         "Potassium (K)",
+            summaryPh:        "Soil pH",
+            summaryTemp:      "Temp",
+            summaryHumidity:  "Humidity",
+            summaryRainfall:  "Rainfall",
+            whyTitle:         "Why This Crop? — Dataset-Based Explanation",
+            whySource:        "DATASET-BASED COMPARISON",
+            whyDesc:          null, /* skip — contains {{ prediction }} */
+            tblParam:         "Parameter",
+            tblUserVal:       "User Value",
+            tblCropAvg:       "Crop Average",
+            tblDiff:          "Difference",
+            noticeTitle:      "DATASET-BASED COMPARISON",
+            noticeText:       "This comparison is based on patterns in the training dataset and is intended for decision support, not as an absolute yield guarantee.",
+            disclaimerStrong: "Disclaimer:",
+            disclaimerText:   "This comparison is based on patterns in the training dataset and is intended for decision support, not as an absolute yield guarantee.",
+            awaitTitle:       "Awaiting Input",
+            awaitDesc:        "Enter the soil and environmental parameters on the left, then click Recommend Crop to receive an ML-based prediction.",
+        },
+        mr: {
+            pageTitle:        "पीक शिफारस",
+            pageSubtitle:     "तुमच्या शेताची माती आणि परिसरातील हवामानाची माहिती भरा आणि ML-आधारित पीक शिफारस मिळवा.",
+            langLabel:        "भाषा:",
+            inputParamsTitle: "इनपुट मापदंड",
+            soilNutrientsLabel: "जमिनीतील पोषक घटक (kg/ha)",
+            labelN:           "नत्र (N)",
+            labelP:           "स्फुरद (P)",
+            labelK:           "पालाश (K)",
+            soilChemLabel:    "जमिनीचे रसायनशास्त्र",
+            labelPh:          "जमिनीचा सामू (pH)",
+            envCondLabel:     "पर्यावरणीय परिस्थिती",
+            labelTemp:        "तापमान (°C)",
+            labelHumidity:    "आर्द्रता (%)",
+            labelRainfall:    "पर्जन्यमान (mm)",
+            btnRecommend:     "पीक शिफारस करा",
+            rangesTitle:      "डेटासेटमधील सामान्य श्रेणी",
+            rangeTemp:        "तापमान: ८ – ४४ °C",
+            rangeHumidity:    "आर्द्रता: १४ – १००%",
+            rangeRainfall:    "पर्जन्यमान: २० – २९९ mm",
+            topRecoLabel:     "सर्वोत्तम शिफारस केलेले पीक",
+            confidenceLabel:  "मॉडेल विश्वास",
+            confidenceNote:   null,
+            top3Title:        "शीर्ष ३ शिफारस केलेली पिके",
+            top3Source:       "स्रोत: Random Forest predict_proba()",
+            rankTop:          "शीर्ष",
+            inputSummaryTitle:"सादर केलेले इनपुट मापदंड सारांश",
+            summaryN:         "नत्र (N)",
+            summaryP:         "स्फुरद (P)",
+            summaryK:         "पालाश (K)",
+            summaryPh:        "जमिनीचा सामू",
+            summaryTemp:      "तापमान",
+            summaryHumidity:  "आर्द्रता",
+            summaryRainfall:  "पर्जन्यमान",
+            whyTitle:         "हे पीक का? — डेटासेट-आधारित स्पष्टीकरण",
+            whySource:        "डेटासेट-आधारित तुलना",
+            whyDesc:          null,
+            tblParam:         "मापदंड",
+            tblUserVal:       "तुमचे मूल्य",
+            tblCropAvg:       "पिकाची सरासरी",
+            tblDiff:          "फरक",
+            noticeTitle:      "डेटासेट-आधारित तुलना",
+            noticeText:       "ही तुलना प्रशिक्षण डेटासेटमधील नमुन्यांवर आधारित आहे आणि निर्णय समर्थनासाठी आहे, हमी म्हणून नाही.",
+            disclaimerStrong: "अस्वीकरण:",
+            disclaimerText:   "ही तुलना प्रशिक्षण डेटासेटमधील नमुन्यांवर आधारित आहे आणि निर्णय समर्थनासाठी आहे, हमी म्हणून नाही.",
+            awaitTitle:       "इनपुटची प्रतीक्षा",
+            awaitDesc:        "डाव्या बाजूला माती व हवामानाचे मापदंड भरा, नंतर पीक शिफारस करा वर क्लिक करा.",
+        }
+    };
+
+    /* ── Apply translations ── */
+    function applyLang(lang) {
+        const dict = T[lang];
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {
+            const key = el.getAttribute('data-i18n');
+            if (dict[key] !== undefined && dict[key] !== null) {
+                el.textContent = dict[key];
+            }
+        });
+
+        /* Update input placeholders */
+        document.querySelectorAll('input[data-placeholder-' + lang + ']').forEach(function (inp) {
+            inp.placeholder = inp.getAttribute('data-placeholder-' + lang);
+        });
+
+        /* Update toggle button states */
+        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+        document.getElementById('btn-mr').classList.toggle('active', lang === 'mr');
+        document.getElementById('btn-en').setAttribute('aria-pressed', lang === 'en');
+        document.getElementById('btn-mr').setAttribute('aria-pressed', lang === 'mr');
+
+        /* Persist choice in sessionStorage (resets on tab close) */
+        sessionStorage.setItem('cropLang', lang);
+    }
+
+    /* ── Global handler (called from onclick) ── */
+    window.setLang = function (lang) {
+        applyLang(lang);
+    };
+
+    /* ── Restore last choice on page load ── */
+    document.addEventListener('DOMContentLoaded', function () {
+        const saved = sessionStorage.getItem('cropLang') || 'en';
+        if (saved !== 'en') applyLang(saved);
+    });
+})();
+</script>
+{% endblock %}
